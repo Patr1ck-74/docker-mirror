@@ -17,17 +17,17 @@ jobs:
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}  # 使用 GitHub Secrets 中的 Docker Hub 用户名
-        password: ${{ secrets.DOCKER_PASSWORD }}  # 使用 GitHub Secrets 中的 Docker Hub 密码或访问令牌
+        username: ${{ secrets.DOCKERHUB_USERNAME }}  # 使用 GitHub Secrets 中的 Docker Hub 用户名
+        password: ${{ secrets.DOCKERHUB_TOKEN }}  # 使用 GitHub Secrets 中的 Docker Hub 密码或访问令牌
 
     - name: Pull Docker Image from GHCR
       run: |
-        docker pull ghcr.io/stsix/leaflow-checkin:latest  # 从 GHCR 拉取指定镜像
+        docker pull ghcr.io/stsix/leaflow-checkin:latest  # 从 GHCR 拉取镜像
 
     - name: Tag Docker Image for Docker Hub
       run: |
-        docker tag ghcr.io/stsix/leaflow-checkin:latest patr1ck-74s/leaflow-checkin:latest  # 使用您的 GitHub 账户名标记镜像
+        docker tag ghcr.io/stsix/leaflow-checkin:latest ${{ secrets.DOCKERHUB_USERNAME }}/leaflow-checkin:latest  # 使用 GitHub Secrets 中的 Docker Hub 用户名标记镜像
 
     - name: Push Docker Image to Docker Hub
       run: |
-        docker push patr1ck-74s/leaflow-checkin:latest  # 推送到您的 Docker Hub 仓库
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/leaflow-checkin:latest  # 推送到 Docker Hub 仓库
