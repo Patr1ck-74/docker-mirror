@@ -5,14 +5,13 @@ on:
     branches:
       - main
   workflow_dispatch:
-    # 这里定义手动触发时的输入参数
     inputs:
       source_image:
         description: '源镜像地址 (例如 ghcr.io/stsix/leaflow-checkin:latest)'
         required: true
         default: 'ghcr.io/stsix/leaflow-checkin:latest'
       target_repo:
-        description: '推送到 Docker Hub 的仓库名 (不含用户名)'
+        description: '推送到 Docker Hub 的仓库名'
         required: true
         default: 'leaflow-checkin'
       target_tag:
@@ -23,26 +22,25 @@ on:
 jobs:
   copy_image:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Sync Image
+    # 1. 安装 Skopeo (Ubuntu 环境通常自带，但通过脚本确保最新)
+    - name: Install Skopeo
       run: |
-        # 使用环境变量来处理参数，确保不管是手动触发还是 push 触发都有默认值
+        sudo apt-get update
+        sudo apt-get install -y skopeo
+
+    # 2. 这里的同步不需要下载镜像到本地，直接在两个远程仓库间传输
+    - name: Sync Image using Skopeo
+      run: |
         SOURCE="${{ github.event.inputs.source_image || 'ghcr.io/stsix/leaflow-checkin:latest' }}"
-        TARGET_REPO="${{ github.event.inputs.target_repo || 'leaflow-checkin' }}"
-        TARGET_TAG="${{ github.event.inputs.target_tag || 'latest' }}"
+        TARGET="docker://docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.target_repo || 'leaflow-checkin' }}:${{ github.event.inputs.target_tag || 'latest' }}"
         
-        echo "正在同步: $SOURCE -> ${{ secrets.DOCKERHUB_USERNAME }}/$TARGET_REPO:$TARGET_TAG"
+        echo "正在从 $SOURCE 同步到 $TARGET"
         
-        docker buildx imagetools create \
-          --tag ${{ secrets.DOCKERHUB_USERNAME }}/$TARGET_REPO:$TARGET_TAG \
-          $SOURCE
+        # 使用 Skopeo 进行同步，--all 表示同步所有架构（AMD64, ARM64等）
+        # --dest-creds 使用你 Secrets 里的凭据进行登录
+        skopeo copy \
+          --all \
+          --dest-creds "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" \
+          docker://$SOURCE \
+          $TARGET
