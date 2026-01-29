@@ -1,0 +1,32 @@
+name: Docker Push to Docker Hub
+
+on:
+  push:
+    branches:
+      - main  # 监听 `main` 分支的推送
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # 使用 GitHub Secrets 中的 Docker Hub 用户名
+        password: ${{ secrets.DOCKER_PASSWORD }}  # 使用 GitHub Secrets 中的 Docker Hub 密码或访问令牌
+
+    - name: Pull Docker Image from GHCR
+      run: |
+        docker pull ghcr.io/stsix/leaflow-checkin:latest  # 从 GHCR 拉取指定镜像
+
+    - name: Tag Docker Image for Docker Hub
+      run: |
+        docker tag ghcr.io/stsix/leaflow-checkin:latest patr1ck-74s/leaflow-checkin:latest  # 使用您的 GitHub 账户名标记镜像
+
+    - name: Push Docker Image to Docker Hub
+      run: |
+        docker push patr1ck-74s/leaflow-checkin:latest  # 推送到您的 Docker Hub 仓库
