@@ -1,6 +1,6 @@
 # Docker Image Sync (Multi-Arch) 🚀
 
-这是一个基于 GitHub Actions 和 [Crane](https://github.com/google/go-containerregistry/tree/main/cmd/crane) 的轻量级容器镜像同步工具。
+这是一个基于 GitHub Actions 和 [Crane](https://github.com/google/go-containerregistry/tree/main/cmd/crane) 的轻量级容器镜像同步工具。【旨在便于国内机器使用镜像源加速】
 
 ### 🌟 核心优势
 - **多架构支持**：原生 OCI 拷贝，完美保留 `amd64`, `arm64`, `arm/v7` 等所有架构信息。
