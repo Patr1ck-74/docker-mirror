@@ -25,7 +25,7 @@
 1. 点击仓库顶部的 **Actions**。
 2. 在左侧选择工作流：`Docker Image Sync (Multi-Arch)`。
 3. 点击 **Run workflow** 下拉按钮并填写：
-   - **源镜像**: 输入原始镜像（如 `ghcr.io/szemeng76/lunatv:latest`）。
+   - **源镜像**: 输入原始镜像（如 `ghcr.io/***/***:latest`）。
    - **Docker Hub 仓库名**: 你要存放在自己仓库的名称（不含用户名）。
    - **镜像标签**: 目标镜像的标签（如 `latest` 或 `v1.2.3`）。
 4. 点击 **Run workflow** 启动同步。
