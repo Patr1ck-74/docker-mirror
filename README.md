@@ -31,12 +31,3 @@
 4. 点击 **Run workflow** 启动同步。
 
 ---
-
-## 📝 实现原理
-
-工作流执行流程如下：
-- **Setup Crane**: 安装 Google 官方提供的 OCI 镜像管理工具。
-- **Auth**: 通过 `GITHUB_TOKEN` 登录 GHCR，通过 Secrets 登录 Docker Hub。
-- **Native Sync**: 执行 `crane cp "$SOURCE" "$TARGET"`，在不解压镜像的情况下完成跨仓库迁移。
-
----
