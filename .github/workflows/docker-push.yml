@@ -1,46 +1,41 @@
 name: Docker Image Sync (Multi-Arch)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       source_image:
-        description: '源镜像地址 (例如 ghcr.io/stsix/leaflow-checkin:latest)'
+        description: '源镜像 (例: ghcr.io/szemeng76/lunatv:latest)'
         required: true
-        default: 'ghcr.io/stsix/leaflow-checkin:latest'
+        default: 'ghcr.io/szemeng76/lunatv:latest'
       target_repo:
-        description: '推送到 Docker Hub 的仓库名'
+        description: 'Docker Hub 仓库名 (不含用户名)'
         required: true
-        default: 'leaflow-checkin'
+        default: 'moontv'
       target_tag:
-        description: '镜像标签 (Tag)'
+        description: '镜像标签'
         required: true
         default: 'latest'
 
 jobs:
-  copy_image:
+  sync_image:
     runs-on: ubuntu-latest
     steps:
-    # 1. 安装 Skopeo (Ubuntu 环境通常自带，但通过脚本确保最新)
-    - name: Install Skopeo
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y skopeo
+      # 1. 设置 Crane 工具
+      - name: Setup Crane
+        uses: imjasonh/setup-crane@v0.3
 
-    # 2. 这里的同步不需要下载镜像到本地，直接在两个远程仓库间传输
-    - name: Sync Image using Skopeo
-      run: |
-        SOURCE="${{ github.event.inputs.source_image || 'ghcr.io/stsix/leaflow-checkin:latest' }}"
-        TARGET="docker://docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.target_repo || 'leaflow-checkin' }}:${{ github.event.inputs.target_tag || 'latest' }}"
-        
-        echo "正在从 $SOURCE 同步到 $TARGET"
-        
-        # 使用 Skopeo 进行同步，--all 表示同步所有架构（AMD64, ARM64等）
-        # --dest-creds 使用你 Secrets 里的凭据进行登录
-        skopeo copy \
-          --all \
-          --dest-creds "${{ secrets.DOCKERHUB_USERNAME }}:${{ secrets.DOCKERHUB_TOKEN }}" \
-          docker://$SOURCE \
-          $TARGET
+      # 2. 显式登录双方仓库 (这是保证镜像不损坏的关键)
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | crane auth login index.docker.io -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      # 3. 使用 crane cp 进行原生迁移
+      - name: Sync Image
+        run: |
+          SOURCE="${{ github.event.inputs.source_image }}"
+          TARGET="${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.inputs.target_repo }}:${{ github.event.inputs.target_tag }}"
+          
+          echo "🚀 正在从 $SOURCE 同步到 $TARGET ..."
+          crane cp "$SOURCE" "$TARGET"
