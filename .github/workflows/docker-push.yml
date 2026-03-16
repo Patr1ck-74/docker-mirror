@@ -6,11 +6,11 @@ on:
       source_image:
         description: '源镜像 (例: ghcr.io/***/***:latest)'
         required: true
-        default: 'ghcr.io/**/**v:latest'
+        default: ' '
       target_repo:
         description: 'Docker Hub 仓库名 (不含用户名)'
         required: true
-        default: 'moontv'
+        default: ''
       target_tag:
         description: '镜像标签'
         required: true
