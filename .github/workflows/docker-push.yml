@@ -22,7 +22,7 @@ jobs:
     steps:
       # 1. 设置 Crane 工具
       - name: Setup Crane
-        uses: imjasonh/setup-crane@v0.3
+        uses: imjasonh/setup-crane@v0.5
 
       # 2. 显式登录双方仓库 (这是保证镜像不损坏的关键)
       - name: Login to GHCR
